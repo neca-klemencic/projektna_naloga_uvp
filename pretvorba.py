@@ -44,29 +44,18 @@ serija_re = re.compile(
 oblika_serije_re = re.compile(
     r'"title":"([^"]*)",'
     r'"averageEpisodeRating":([\d\.]*).*?'
-    # "totalEpisodes": 62,
-    # "totalEpisodeVotes": 4514045,
+    r'"totalEpisodes":([\d]*).*?'
+    r'"totalEpisodeVotes":([\d]*).*?'
     # "numVotes": 2642930,
     # "showRating": 9.5,
-    # "bestEpisode": {
-    #     "tconst": "tt1683088",
-    #     "rating": 9.8,
-    #     "title": "Face Off"
-    # },
-    # "worstEpisode": {
-    #     "tconst": "tt1683090",
-    #     "rating": 7.9,
-    #     "title": "Open House"
-    # },
-    # "minEpisodeRating": 7.9,
-    # "maxEpisodeRating": 9.8,
+    r'"minEpisodeRating":([\d\.]*).*?'
+    r'"maxEpisodeRating":([\d\.]*).*?'
     #         "episodeScore": 8.55,
     #         "showScore": 9.45,
     #         "finalScore": 9.09,
     #         "lastUpdated": "2026-07-19T02:01:34.242Z",
-    #         "rank": 1,
+    r'"rank":([\d]*).*?'
     r'"tmdbId":(\d+),.*?'
-    #         "posterPath": "/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg",
     r'"slug":"([^"]*)",.*?'
     #         "firstAirDate": "2008-01-20",
     #         "genreIds"
@@ -82,18 +71,18 @@ serije_slovarji = []
 for serija in seznam:
     iskanje = oblika_serije_re.search(serija)
     if iskanje:
-        title, averageEpisodeRating, id, slug = iskanje.groups()
+        title, povpr_ocena, st_epizod, st_ocen_epizod, min_ocena, max_ocena, pozicija, id, slug = iskanje.groups()
         text_serija = download_url_to_string(f"https://seriesgraph.com/show/{id}")
         print(f"Serija: {slug}")
         save_string_to_file(text_serija, "shows", f"{id}.html")
-        serije_slovarji.append([title, averageEpisodeRating, id])
+        serije_slovarji.append([title, povpr_ocena, st_epizod, st_ocen_epizod, min_ocena, max_ocena, pozicija, id])
 
 
 with open('shows/shows.csv', 'w', newline='', encoding='utf-8') as d:
     writer = csv.writer(d)
 
     writer.writerow([
-        'Naslov', 'Povp_ocena_epizode', 'ID'
+        'Naslov', 'Povprecna_ocena_epizode', 'Stevilo_epizod', 'Stevilo_ocen_epizod', 'Minimalna_ocena', 'Maksimalna_ocena', 'Pozicija','ID'
     ])
 
     writer.writerows(serije_slovarji)
