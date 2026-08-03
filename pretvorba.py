@@ -95,7 +95,16 @@ def write_shows_to_csv(serije_slovarji):
             'Naslov', 'Povprecna_ocena_epizode', 'Stevilo_epizod', 'Stevilo_ocen_epizod', 'Stevilo_ocen_sezone',
             'Povprecna_ocena_sezone', 'Minimalna_ocena', 'Maksimalna_ocena', 'Pozicija', 'ID'
         ])
-        writer.writerows(serije_slovarji)
+        vrstice = []
+        for vrstica in serije_slovarji:
+            nova_vrstica = list(vrstica)
+            for indeks in (1, 4, 5, 6, 7):
+                try:
+                    nova_vrstica[indeks] = f"{float(nova_vrstica[indeks]):.2f}"
+                except (TypeError, ValueError):
+                    pass
+            vrstice.append(nova_vrstica)
+        writer.writerows(vrstice)
 
 
 def community_to_seasons(vsebina):
@@ -109,7 +118,7 @@ def season_to_episodes(vsebina):
     return community_re.split(vsebina)[1:]
 
 
-def dodaj_community_podatke(vhodna, izhodna):
+def dodaj_community_podatke(vhodna, izhodna, epizode_izhodna):
     oblika_epizode_re = re.compile(
         r'^([\d\.]*).*?'
         r'"community_count":([\d]*).*?'
@@ -122,11 +131,12 @@ def dodaj_community_podatke(vhodna, izhodna):
     epizode_seznam = []
     with open(vhodna, 'r', encoding='utf-8') as f:
         serije_slovarji = list(csv.reader(f))
+        vse_epizode = []
 
         zaporedna = 1
         stevilo_serij = len(serije_slovarji)
         for serija in serije_slovarji[1:]:
-            print(f"Serija {zaporedna}/{stevilo_serij}")
+            print(f"Serija {zaporedna}/{stevilo_serij - 1}")
             zaporedna += 1
             with open(f"shows/{serija[9]}_community.json", 'r', encoding='utf-8') as d:
                 vsebina = d.read()
@@ -145,8 +155,8 @@ def dodaj_community_podatke(vhodna, izhodna):
                     epizoda_podatki = oblika_epizode_re.search(epizoda)
                     if epizoda_podatki:
                         groups = epizoda_podatki.groups()
-                        #vote = float(groups[0])
-                        #count = int(groups[1])
+                        vote = float(groups[0])
+                        count = int(groups[1])
                         air_date = date.fromisoformat(groups[4])
                         runtime = int(groups[5])
                         if first_date is None or air_date < first_date:
@@ -154,6 +164,18 @@ def dodaj_community_podatke(vhodna, izhodna):
                         if last_date is None or air_date > last_date:
                             last_date = air_date
                         average_runtime += runtime
+                        vse_epizode.append({
+                            'vote_average': vote,
+                            'community_count': count,
+                            'episode_number': int(groups[2]),
+                            'season_number': int(groups[3]),
+                            'air_date': air_date,
+                            'runtime': runtime,
+                            'id': serija[9],
+                            'pozicija': serija[8],
+                            'stevilo_epizod': serija[2],
+                            'ocena_serije': serija[5]
+                        })
                         #average_count += count
                         #average_vote += vote
             if stevilo_epizod > 0:
@@ -163,12 +185,8 @@ def dodaj_community_podatke(vhodna, izhodna):
             #serija[2] = str(stevilo_epizod)
             serija.append(str(first_date))
             serija.append(str(last_date))
-            serija.append(str(average_runtime))
+            serija.append(f"{average_runtime:.2f}" if stevilo_epizod > 0 else "0.00")
             serija.append(str(stevilo_sezon))
-            date_difference = (last_date - first_date).days // 365 if first_date and last_date else 0
-            serija.append(str(date_difference))
-
-            
 
 
         with open(izhodna, 'w', newline='', encoding='utf-8') as e:
@@ -176,13 +194,21 @@ def dodaj_community_podatke(vhodna, izhodna):
             writer.writerow([
                 'Naslov', 'Povprecna_ocena_epizode', 'Stevilo_epizod', 'Stevilo_ocen_epizod', 'Stevilo_ocen_sezone', 
                 'Povprecna_ocena_sezone', 'Minimalna_ocena', 'Maksimalna_ocena', 'Pozicija', 'ID', 'Prva_epizoda', 
-                'Najnovejša_epizoda', 'Povprecna_dolzina_epizode', 'Stevilo_sezon', "Leta"
+                'Najnovejša_epizoda', 'Povprecna_dolzina_epizode', 'Stevilo_sezon'
             ])
 
             writer.writerows(serije_slovarji[1:])
+
+        with open(epizode_izhodna, 'w', newline='', encoding='utf-8') as e:
+            writer = csv.DictWriter(e, fieldnames=[
+                'vote_average', 'community_count', 'episode_number', 'season_number', 'air_date', 'runtime', 
+                'id', 'pozicija', 'stevilo_epizod', 'ocena_serije' 
+            ])
+            writer.writeheader()
+            writer.writerows(vse_epizode)
 
 download_top_rated_shows()
 seznam = shows_to_array()
 serije_slovarji = convert_community_ratings(seznam)
 write_shows_to_csv(serije_slovarji)
-dodaj_community_podatke('shows/shows.csv', 'shows/shows_community.csv')
+dodaj_community_podatke('shows/shows.csv', 'shows/shows_community.csv', 'shows/epizode_community.csv')
