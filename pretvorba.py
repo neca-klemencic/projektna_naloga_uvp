@@ -19,6 +19,7 @@ def download_url_to_string(url):
         return None
     return page_content
 
+
 def save_string_to_file(text, directory, filename):
     if text is not None:
         os.makedirs(directory, exist_ok=True)
@@ -27,6 +28,7 @@ def save_string_to_file(text, directory, filename):
             file_out.write(text)
     return None
 
+
 def download_url_to_file(url, directory, filename):
     file_path = os.path.join(directory, filename)
     if not os.path.exists(file_path):
@@ -34,10 +36,13 @@ def download_url_to_file(url, directory, filename):
         # Dodano za kasnejše popravke:
         save_string_to_file(text, directory, filename)
 
+
 def download_top_rated_shows():
-    """Naloži seznam najbolj ocenjenih serij in ga shrani v datoteko shows/shows.html"""
+    """Naloži seznam najbolj ocenjenih serij in ga shrani v datoteko 
+    shows/shows.html"""
     top_rated_url = "https://seriesgraph.com/api/top-rated"
     download_url_to_file(top_rated_url, "shows", "shows.html")
+
 
 def shows_to_array():
     serija_re = re.compile(r'"imdbId".*?"firstAirDate"')
@@ -45,10 +50,11 @@ def shows_to_array():
         vsebina = f.read()
     return serija_re.findall(vsebina)
 
+
 def convert_community_ratings(seznam):
-    """"Funkcija sprejme seznam nizov, ki predstavljajo posamezne serije in vrne seznam
-    slovarjev, ki vsebujejo podatke o posameznih serijah. Za vsako serijo prenese tudi 
-    podatke o ocenah skupnosti in jih shrani v datoteko."""
+    """"Funkcija sprejme seznam nizov, ki predstavljajo posamezne serije in vrne 
+    seznam slovarjev, ki vsebujejo podatke o posameznih serijah. Za vsako serijo 
+    prenese tudi podatke o ocenah skupnosti in jih shrani v datoteko."""
     oblika_serije_re = re.compile(
         r'"title":"([^"]*)",'
         r'"averageEpisodeRating":([\d\.]*).*?'
@@ -73,20 +79,29 @@ def convert_community_ratings(seznam):
             print(f"Serija {zaporedna}/{stevilo_serij}")
             serije_slovarji.append(ena_serija)
 
-            # Download the community ratings for the series and save it to a file
             url = f"https://seriesgraph.com/api/community-ratings/{id}/season-ratings"
             download_url_to_file(url, "shows", f"{id}_community.json")
             zaporedna += 1
     return serije_slovarji
 
+
 def write_shows_to_csv(serije_slovarji):
-    """Funkcija sprejme seznam slovarjev, ki vsebujejo podatke o posameznih serijah in jih shrani v datoteko shows/shows.csv; 
-    izbrane podatke tudi formatira na dve decimalni mesti."""
+    """Funkcija sprejme seznam slovarjev, ki vsebujejo podatke o posameznih 
+    serijah in jih shrani v datoteko shows/shows.csv; izbrane podatke tudi 
+    formatira na dve decimalni mesti."""
     with open('shows/shows.csv', 'w', newline='', encoding='utf-8') as d:
         writer = csv.writer(d)
         writer.writerow([
-            'Naslov', 'Povprecna_ocena_epizode', 'Stevilo_epizod', 'Stevilo_ocen_epizod', 'Stevilo_ocen_serije',
-            'Povprecna_ocena_serije', 'Minimalna_ocena', 'Maksimalna_ocena', 'Pozicija', 'ID'
+            'Naslov', 
+            'Povprecna_ocena_epizode', 
+            'Stevilo_epizod', 
+            'Stevilo_ocen_epizod', 
+            'Stevilo_ocen_serije',
+            'Povprecna_ocena_serije', 
+            'Minimalna_ocena', 
+            'Maksimalna_ocena', 
+            'Pozicija', 
+            'ID'
         ])
         vrstice = []
         for vrstica in serije_slovarji:
@@ -99,22 +114,27 @@ def write_shows_to_csv(serije_slovarji):
             vrstice.append(nova_vrstica)
         writer.writerows(vrstice)
 
+
 def community_to_seasons(vsebina):
-    """Funkcija vsebino celotne serije razdeli na posamezne sezone in vrne seznam nizov, kjer vsak niz predstavlja eno sezono."""
+    """Funkcija vsebino celotne serije razdeli na posamezne sezone in 
+    vrne seznam nizov, kjer vsak niz predstavlja eno sezono."""
     community_re = re.compile(r'"episodes":')
     # prvi element predstavlja vsebino pred prvo sezono, zato ga preskočimo
     return community_re.split(vsebina)[1:]
 
+
 def season_to_episodes(vsebina):
-    """Funkcija vsebino posamezne sezone razdeli na posamezne epizode in vrne seznam nizov, kjer vsak niz predstavlja eno epizodo."""
+    """Funkcija vsebino posamezne sezone razdeli na posamezne epizode in 
+    vrne seznam nizov, kjer vsak niz predstavlja eno epizodo."""
     community_re = re.compile(r'"vote_average":')
     # prvi element predstavlja vsebino pred prvo epizodo, zato ga preskočimo
     return community_re.split(vsebina)[1:]
 
 
 def add_community_data(vhodna, izhodna, epizode_izhodna):
-    """Funkcija prebere podatke o serijah iz datoteke "vhodna", prenese podatke o ocenah skupnosti 
-    za vsako serijo in jih shrani v datoteko "izhodna" ter podatke o posameznih epizodah v datoteko "epizode_izhodna"."""
+    """Funkcija prebere podatke o serijah iz datoteke "vhodna", prenese 
+    podatke o ocenah skupnosti za vsako serijo in jih shrani v datoteko 
+    "izhodna" ter podatke o posameznih epizodah v datoteko "epizode_izhodna"."""
     oblika_epizode_re = re.compile(
         r'^([\d\.]*).*?'
         r'"community_count":([\d]*).*?'
@@ -179,24 +199,50 @@ def add_community_data(vhodna, izhodna, epizode_izhodna):
         with open(izhodna, 'w', newline='', encoding='utf-8') as e:
             writer = csv.writer(e)
             writer.writerow([
-                'Naslov', 'Povprecna_ocena_epizode', 'Stevilo_epizod', 'Stevilo_ocen_epizod', 'Stevilo_ocen_serije', 
-                'Povprecna_ocena_serije', 'Minimalna_ocena', 'Maksimalna_ocena', 'Pozicija', 'ID', 'Prva_epizoda', 
-                'Najnovejša_epizoda', 'Povprecna_dolzina_epizode', 'Stevilo_sezon'
+                'Naslov', 
+                'Povprecna_ocena_epizode', 
+                'Stevilo_epizod', 
+                'Stevilo_ocen_epizod', 
+                'Stevilo_ocen_serije', 
+                'Povprecna_ocena_serije', 
+                'Minimalna_ocena', 
+                'Maksimalna_ocena', 
+                'Pozicija', 
+                'ID', 
+                'Prva_epizoda', 
+                'Najnovejša_epizoda', 
+                'Povprecna_dolzina_epizode', 
+                'Stevilo_sezon'
             ])
-
             writer.writerows(serije_slovarji[1:])
 
         with open(epizode_izhodna, 'w', newline='', encoding='utf-8') as e:
-            writer = csv.DictWriter(e, fieldnames=[
-                'vote_average', 'community_count', 'episode_number', 'season_number', 'air_date', 'runtime', 
-                'id', 'pozicija', 'stevilo_epizod', 'ocena_serije' 
-            ])
+            writer = csv.DictWriter(
+                e, 
+                fieldnames=[
+                    'vote_average', 
+                    'community_count', 
+                    'episode_number', 
+                    'season_number', 
+                    'air_date', 
+                    'runtime', 
+                    'id', 
+                    'pozicija', 
+                    'stevilo_epizod', 
+                    'ocena_serije' 
+                ],
+            )
             writer.writeheader()
             writer.writerows(vse_epizode)
+
 
 download_top_rated_shows()
 seznam = shows_to_array()
 serije_slovarji = convert_community_ratings(seznam)
 write_shows_to_csv(serije_slovarji)
-add_community_data('shows/shows.csv', 'shows/shows_community.csv', 'shows/epizode_community.csv')
+add_community_data(
+    'shows/shows.csv', 
+    'shows/shows_community.csv', 
+    'shows/epizode_community.csv'
+    )
 
