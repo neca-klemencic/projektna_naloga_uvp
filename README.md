@@ -6,7 +6,7 @@ Koda analizira spletno stran 250 najboljše ocenjenih serij, v moji analizi pa j
 
 Ta pobere podatke iz strani https://seriesgraph.com/top-rated in jih shrani v datoteko imenovano "shows.html" v mapo imenovano "shows". Te podatke preoblikuje in jih shrani v datoteko imenovano "shows.csv". 
 
-S pomočjo podatkov v datoteki "shows.csv" z id številko serij pobere še podatke za vsako posamezno serijo iz strani oblike https://seriesgraph.com/show/{show_id}. Te shrani v 247 datotek znotraj mape "shows" imenovane "{show_id}_community.json". Te preoblikuje in jih združi s podatki iz datoteke "shows.csv" v datoteki imenovani "shows_community.csv". V tej so podatki razporejeni po serijah (vsaka serija predstavlja eno vrstico). Koda pa poleg tega ustvari tudi novo datoteko imenovano "episode_community.csv" v katero podatke s posameznih strani razporedi po epizodah (vsaka epizoda predstavlja eno vrstico). Datoteko kasneje dopolni tudi s podatki o serijah.
+S pomočjo podatkov v datoteki "shows.csv" z id številko serij pobere še podatke za vsako posamezno serijo s strani oblike https://seriesgraph.com/show/{show_id}. Te shrani v 247 datotek znotraj mape "shows" imenovane "{show_id}_community.json". Te preoblikuje in jih združi s podatki iz datoteke "shows.csv" v datoteki imenovani "shows_community.csv". V tej so podatki razporejeni po serijah (vsaka serija predstavlja eno vrstico). Koda poleg tega ustvari tudi novo datoteko imenovano "episode_community.csv", v katero podatke s posameznih strani razporedi po epizodah (vsaka epizoda predstavlja eno vrstico). Datoteko kasneje dopolni tudi s podatki o serijah.
 
 ## 2. korak - Zaženi datoteko "analiza.ipynb".
 
